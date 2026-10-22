@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
+    <title>Trials HD Recompiled</title>
+    <style>
+      body,html{margin:0;height:100%;background:#000;color:#ccc;font:12px monospace}canvas{display:block;width:100vw;height:100vh}#import-panel{position:fixed;inset:0;z-index:2;background:#171717;padding:10vh 10vw;font:16px sans-serif;overflow:auto}#import-panel[hidden]{display:none}#import-panel label{display:block;margin:24px 0}#import-status{white-space:pre-wrap}#log{display:none;position:fixed;z-index:3;left:0;right:0;bottom:0;max-height:35vh;overflow:auto;margin:0;padding:4px 8px;background:rgba(0,0,0,.96);white-space:pre-wrap}
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" tabindex="0"></canvas>
+    <pre id="log"></pre>
+    <section aria-labelledby="status-title" hidden id="import-panel">
+      <h1 id="status-title">Trials HD — local web port</h1>
+      <p>Game assets load automatically from this webport. No package or folder upload is needed.</p>
+      <p aria-live="polite" id="import-status" role="status">Starting the game…</p>
+      <p>Controls: keyboard or standard gamepad. F1 opens settings; double-click the canvas for fullscreen.</p>
+      <button onclick="location.reload()" type="button">Reload / retry</button>
+    </section>
+    <script>
+      const runtimeArguments=[];const urlParams=new URLSearchParams(location.search);for(const[e,t]of urlParams)runtimeArguments.push(""===t?`--${e}`:`--${e}=${t}`);urlParams.has("web_assets_url")||runtimeArguments.push("--web_assets_url=/assets");urlParams.has("log_file")||runtimeArguments.push("--log_file=/opfs/trials_hd/logs/trials_hd.log");const logElement=document.getElementById("log");"#log"===location.hash&&(logElement.style.display="block");const logLines=[];function showLog(e){console.log(e),logLines.push(e),logLines.length>200&&logLines.shift(),logElement.textContent=logLines.join("\n"),logElement.scrollTop=logElement.scrollHeight}const canvasElement=document.getElementById("canvas");canvasElement.width=Math.round(canvasElement.clientWidth*devicePixelRatio),canvasElement.height=Math.round(canvasElement.clientHeight*devicePixelRatio),window.trialsHd={started:performance.now(),exitCode:null,webAssetsUrl:new URLSearchParams(location.search).get("web_assets_url")||"/assets"},window.trialsHd.filesStatus=(e,t=!1)=>{document.fullscreenElement&&document.exitFullscreen().catch(()=>{}),document.getElementById("import-panel").hidden=!1,document.getElementById("import-status").textContent=e,t&&(window.trialsHd.storageError=e),showLog(`web storage: ${e}`)};var Module={arguments:runtimeArguments,noInitialRun:!0,canvas:canvasElement,print:showLog,printErr:showLog,onRuntimeInitialized:async()=>{if(!window.trialsHd.startupError)try{const[{WebInput:e},{startWithFiles:t}]=await Promise.all([import("./input.js"),import("./import.js")]);await t(()=>{const t=new e(canvasElement,Module.wasmMemory.buffer,Number(Module._trials_hd_web_input_block()));t.start(),window.trialsHd.input=t,window.setSyntheticPadButton=(e,o)=>t.setSyntheticButton(e,o),window.setSyntheticPadAxis=(e,o)=>t.setSyntheticAxis(e,o),window.trialsHd.inputReady=!0,import("./audio.js").then(({WebAudio:e})=>(window.trialsHd.audio=new e(Module)).start()).catch(e=>{window.trialsHd.audioError=String(e),showLog(`web audio failed: ${e}`)}),canvasElement.focus(),showLog("web: controller input ready; press a gamepad button to connect"),Module.callMain(runtimeArguments)})}catch(e){window.trialsHd.startupError=String(e),window.trialsHd.filesStatus(String(e),!0)}},onAbort:e=>window.trialsHd.filesStatus(`Runtime stopped: ${e}. Reload to retry.`,!0),onExit:e=>{window.trialsHd.input?.stop(),window.trialsHd.audio?.stop(),window.trialsHd.exitCode=e,showLog(`trials_hd exited with code ${e}`),window.trialsHd.storageError||window.trialsHd.filesStatus(0===e?"Game closed. Reload to play again; saves remain in browser storage.":`Game stopped with code ${e}. Reload to retry.`,0!==e)}};let browserError="";crossOriginIsolated?"function"==typeof WebAssembly.Suspending&&WebAssembly.validate(Uint8Array.from([0,97,115,109,1,0,0,0,5,4,1,7,1,1]))?navigator.gpu||(browserError="WebGPU is unavailable. Enable hardware WebGPU in current desktop Chrome/Edge."):browserError="Shared Memory64 and JSPI are required. Use current desktop Chrome/Edge.":browserError="Cross-origin isolation is required. This browser must treat http://192.168.40.8 as a secure origin and receive COOP/COEP headers. Game assets load automatically from /assets.",browserError&&(window.trialsHd.startupError=browserError,window.trialsHd.filesStatus(browserError,!0)),window.addEventListener("error",e=>{browserError||window.trialsHd.filesStatus(`Runtime error: ${e.message}. Check browser support and available memory.`,!0)})
+    </script>
+    <script async src="trials_hd.js"></script>
+  </body>
+</html>
